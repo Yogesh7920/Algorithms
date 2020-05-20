@@ -1,0 +1,10 @@
+a b 37
+a c 51
+a d 50
+a e 46
+b c 44
+b d 41
+b e 48
+c d 28
+c e 33
+d e 53
