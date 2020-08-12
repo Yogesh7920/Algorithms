@@ -6,7 +6,6 @@ class Node:
         self.id = node
         self.neighbours = dd(lambda: 0)
         self.depth = depth
-        self.parent = parent
 
     def add_neighbours(self, v2, w):
         self.neighbours[v2] = w
@@ -16,7 +15,7 @@ class Graph:
 
     def __init__(self, directed=True):
 
-        self.nodes = dd(lambda: Node(-1))
+        self.nodes = dict()
         self.n = 0
         self.directed = directed
 
@@ -25,6 +24,8 @@ class Graph:
         self.nodes[node] = Node(node)
 
     def add_edge(self, f, t, w):
+        if type(w) != float:
+            w = float(w)
         if f not in self.nodes:
             self.add_vertex(f)
 

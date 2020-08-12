@@ -1,41 +1,48 @@
-from queue import PriorityQueue as PQ
+import heapq
+from graph.Graph import Graph
+from collections import defaultdict as dd
 
 
-class Prim:
+class Edge:
 
-    def __init__(self, G):
-        self.g = G
+    def __init__(self, s, d, w):
+        self.s = s
+        self.d = d
+        self.w = w
 
-    def prims(self):
-        x = list()
-        final = dict()
-        am = self.g.adj_matrix()
-        vertices = self.g.get_vertices()
-        ver = list(vertices)[0]
+    def __lt__(self, other):
+        return self.w < other.w
 
-        weight = 0
-        x.append(ver)
-        pq = PQ()
-        inf = float('inf')
-        while self.g.n != len(x):
+    def __gt__(self, other):
+        return self.w > other.w
 
-            for nbr in am[ver]:
-                if nbr not in x:
-                    t = [am[ver][nbr], ver, nbr]
-                    pq.put(t)
 
-            a = pq.get()
-            if a[0] == inf:
-                print("not spanning tree")
-                break
-            ver = a[2]
-            final.setdefault(a[1], dict())
-            final[a[1]].setdefault(ver, inf)
-            final[a[1]][ver] = a[0]
-            weight += a[0]
-            x.append(ver)
+def prims(g: Graph):
+    start = list(g.nodes.keys())[0]
+    visits = set()
+    visits.add(start)
+    pq = []
+    edge_map = dict()
+    temp = start
+    final = dd(lambda: dd(lambda: 0))
+    dist = 0
+    while len(visits) != g.n:
+        neighbours = g.nodes[temp].neighbours
+        for k, v in neighbours.items():
+            edge_map.setdefault(k, Edge(temp, k, v))
+            edge = edge_map[k]
+            heapq.heappush(pq, edge)
 
-        return final, weight
+        edge = heapq.heappop(pq)
+        while edge.d in visits:
+            edge = heapq.heappop(pq)
+        visits.add(edge.d)
+        temp = edge.d
+        final[edge.s][edge.d] = edge.w
+        dist += edge.w
+
+    return final, dist
+
 
 
 

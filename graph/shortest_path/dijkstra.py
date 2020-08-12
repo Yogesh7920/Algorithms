@@ -1,37 +1,52 @@
-from queue import PriorityQueue as PQ
+import heapq
+from graph.Graph import Graph
+
+inf = float('inf')
 
 
-def dijkstra(g, s, e):
-    pq = PQ()
+class Node:
 
-    d = dict()
-    final = dict()
-    inf = float('inf')
-    vertices = g.nodes
-    for ver in vertices:
-        d.setdefault(ver, inf)
+    def __init__(self, id, dis, parent):
+        self.id = id
+        self.dis = dis
+        self.parent = parent
 
-    d[s] = 0.0
+    def __lt__(self, other):
+        return self.dis < other.dis
 
-    for (k, v) in d.items():
-        pq.put((v, k))
+    def __gt__(self, other):
+        return self.dis > other.dis
 
-    while not pq.empty():
 
-        dis, v = pq.get()
-        if v == e:
-            break
-        ver = vertices[v]
-        nbrs = ver.neighbour
-        for (nbr, w) in nbrs.items():
-            if d[nbr] > d[v] + w:
-                d[nbr] = d[v] + w
+def route_find(end):
+    route = []
+    temp = end
+    while temp.parent is not None:
+        route.append(temp.id)
+        temp = temp.parent
+    route.append(temp.id)
+    route.reverse()
+    return route
 
-        final[v] = d[v]
-        del d[v]
 
-        pq = PQ()
-        for (k, v) in d.items():
-            pq.put((v, k))
+def dijkstra(g: Graph, start, end):
+    start_node = Node(start, 0, None)
+    pq = []
+    node_map = dict()
+    node_map[start] = start_node
+    temp = start
+    while temp != end:
+        neighbours = g.nodes[temp].neighbours
+        temp_node = node_map[temp]
+        for k, v in neighbours.items():
+            node = node_map.get(k, Node(k, inf, None))
+            node_map[k] = node
+            if node.dis > temp_node.dis + v:
+                node.dis = temp_node.dis + v
+                node.parent = node_map[temp]
+                heapq.heappush(pq, node)
 
-    return d[e]
+        temp = heapq.heappop(pq).id
+
+    route = route_find(node_map[temp])
+    return route, node_map[temp].dis

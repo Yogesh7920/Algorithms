@@ -1,6 +1,7 @@
 from collections import deque
 import pprint
 
+
 class Flow:
 
     def __init__(self, g, source, sink):
@@ -74,7 +75,5 @@ class Flow:
                 break
             self.update(a, bottleneck)
             max_val += bottleneck
-            # print('max_val = ', max_val)
-            # self.show_steps()
 
         return max_val
