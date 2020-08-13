@@ -2,7 +2,7 @@ from collections import defaultdict as dd
 
 
 class Node:
-    def __init__(self, node, depth=0, parent=None):
+    def __init__(self, node, depth=0):
         self.id = node
         self.neighbours = dd(lambda: 0)
         self.depth = depth
@@ -60,5 +60,6 @@ class Graph:
 
         return am
 
-
+    def set_nodes(self, nodes):
+        self.nodes = nodes
 

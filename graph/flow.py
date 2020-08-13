@@ -1,79 +1,93 @@
 from collections import deque
 import pprint
+from graph.Graph import Graph
+
+inf = float('inf')
 
 
-class Flow:
+class Node:
+    def __init__(self, id, parent):
+        self.id = id
+        self.parent = parent
 
-    def __init__(self, g, source, sink):
-        self.g = g
-        self.source = source
-        self.sink = sink
 
-    def dfs(self):
-        visits = deque([])
-        storage = deque([])
-        mn = float('inf')
-        start, end = self.source, self.sink
-        visits.append(start)
-        storage.append(start)
+def back_track(end: Node):
+    temp = end
+    final = []
+    while temp.parent is not None:
+        final.append(temp.id)
+        temp = temp.parent
 
-        while len(storage) != 0:
-            e = storage.pop()
-            if e == end:
-                break
-            neighbours = self.g.nodes[e].neighbours
-            for neighbour in neighbours:
-                if neighbour not in visits:
-                    c = neighbours[neighbour]
-                    if c:
-                        self.g.nodes[neighbour].parent = self.g.nodes[e]
-                        visits.append(neighbour)
-                        storage.append(neighbour)
+    final.append(temp.id)
+    final.reverse()
+    return final
 
-                        if end == neighbour:
-                            return
 
-    def update(self, a, val):
-        from_ = a[0]
-        a.popleft()
-        for temp in a:
-            from_.neighbours[temp.id] -= val
-            temp.neighbours[from_.id] += val
-            from_ = temp
+def aug_path(nodes, source, sink):
+    temp = source
 
-    def show_steps(self):
-        for node in self.g.nodes:
-            c = self.g.nodes[node]
-            print('id = ', c.id)
-            pprint.pprint(c.neighbours, indent=4)
-            print()
+    visits = deque([])
+    visits.append(source)
 
-    def find_val(self):
-        if self.g.nodes[self.sink].parent is None:
-            return True, [], 0
+    storage = deque([])
+    storage.append(source)
+
+    node_map = dict()
+    node_map[source] = Node(source, None)
+
+    while temp not in sink:
+        neighbours = nodes[temp].neighbours
+        for neighbour in neighbours:
+            if neighbour not in visits:
+                visits.append(neighbour)
+                storage.append(neighbour)
+                node_map[neighbour] = Node(neighbour, node_map[temp])
+
+        if len(storage):
+            temp = storage.popleft()
         else:
-            a = deque([])
-            mn = float('inf')
-            temp = self.g.nodes[self.sink]
-            while not (temp.parent is None):
-                a.appendleft(temp)
-                nxt = temp.parent
-                c = nxt.neighbours[temp.id]
-                mn = min(mn, c)
-                temp = nxt
+            return False
 
-            self.g.nodes[self.sink].parent = None
+    path = back_track(node_map[temp])
+    return path
 
-            return False, a, mn
 
-    def max_flow(self):
-        max_val = 0
-        while True:
-            self.dfs()
-            done, a, bottleneck = self.find_val()
-            if done:
-                break
-            self.update(a, bottleneck)
-            max_val += bottleneck
+def find_critical(nodes, path):
+    val = inf
+    for i in range(len(path)-1):
+        val = min(nodes[path[i]].neighbours[path[i+1]], val)
 
-        return max_val
+    return val
+
+
+def mod_nodes(nodes, path, val):
+    for i in range(len(path)-1):
+        node1 = path[i]
+        node2 = path[i+1]
+
+        if nodes[node1].neighbours[node2] == val:
+            nodes[node1].neighbours.pop(node2)
+        else:
+            nodes[node1].neighbours[node2] -= val
+
+        nodes[node2].neighbours[node1] += val
+
+    return nodes
+
+
+def flow(g: Graph, source, sink):
+    nodes = g.nodes.copy()
+    total = 0
+    while True:
+        aug = aug_path(nodes, source, sink)
+        if aug:
+            critical = find_critical(nodes, aug)
+            nodes = mod_nodes(nodes, aug, critical)
+            total += critical
+        else:
+            break
+
+    return nodes, total
+
+
+
